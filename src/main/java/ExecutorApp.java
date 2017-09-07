@@ -3,9 +3,7 @@ import com.google.common.base.Stopwatch;
 import org.apache.commons.math3.distribution.UniformIntegerDistribution;
 
 import java.util.Random;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 
@@ -61,10 +59,10 @@ public class ExecutorApp {
         long betterNanos = betterTimer.elapsed(TimeUnit.NANOSECONDS);
         double pctDiff =  Math.round( 1000.0 * (poorNanos - betterNanos)/poorNanos) / 10.0;
 
-        System.out.println( pctDiff + "% improvement: better took " + poorTimer + " poor took " + betterTimer + "  ");
+        System.out.println( pctDiff + "% improvement: poorTimer took " + poorTimer + " betterTimer took " + betterTimer + "  ");
     }
 
-    // This works, but it doesn't take advantage
+    // This works, but it doesn't take advantage (of multithreading)
     public void processPoorly(Message msg) {
         int b = slowSvc.call(msg.a); // sleep 22ms
         int c = hvs.call(b); // less than 1ms
@@ -75,6 +73,22 @@ public class ExecutorApp {
     // Can you do the same work as processPoorly(), but achieve higher throughput?
     // Hint - use ExecutorService and Future
     public void processBetter(Message msg) {
+
+        Executor cachedThreadPool = Executors.newCachedThreadPool();
+
+
+        Runnable aRunnable = new Runnable(){
+
+            @Override
+            public void run() {
+                Integer message = slowSvc.call(msg.a);
+                int c = hvs.call(message);
+                int d = mrshs.call(c);
+
+                complete(d);
+            }
+        };
+        cachedThreadPool.execute(aRunnable);
 
     }
 
