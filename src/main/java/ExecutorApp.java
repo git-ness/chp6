@@ -66,9 +66,9 @@ public class ExecutorApp {
 
     // This works, but it doesn't take advantage
     public void processPoorly(Message msg) {
-        int b = slowSvc.call(msg.a);
-        int c = hvs.call(b);
-        int d = mrshs.call(c);
+        int b = slowSvc.call(msg.a); // sleep 22ms
+        int c = hvs.call(b); // less than 1ms
+        int d = mrshs.call(c); // sleep for 2s or pause thread for 10nano seconds
         complete(d);
     }
 
@@ -94,7 +94,7 @@ public class ExecutorApp {
     }
 
     static class Message {
-        public int a = 98272644;
+        public final int a = 98272644;
     }
 
     // This service has a 100ms SLA.
